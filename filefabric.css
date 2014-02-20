@@ -38,7 +38,7 @@
 
 .ff-checkbox{
 	display: inline-block;	
-	background-image: url("/static/css/images/jstree.png");
+	background-image: url("https://plot.ly/static/css/images/jstree.png");
 	background-repeat: no-repeat;
 	background-color: transparent;
 	height: 18px!important;
