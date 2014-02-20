@@ -1,0 +1,83 @@
+/* 	filefabric.css
+	css for file list view and folder nav bar
+	february 11 2013
+	jack parmer
+	*/
+
+.ff-table{
+	margin-top: 40px;
+}
+
+.ff-table > thead{
+	background: white;
+	width: 100%;
+}
+
+.ff-nav-bar{
+	padding: 5px 10px;
+	font-size: 14px;	
+	background: whitesmoke;
+	position: absolute;
+	width: 100%;
+	min-height: 40px;
+	border-bottom: 1px solid #aaa;
+}
+
+.ff-nav-bar span{
+	vertical-align: middle;
+}
+
+.ff-nav-bar a{
+	padding: 5px 10px;
+	vertical-align: middle;
+}
+
+.ff-nav-bar a:hover{
+	background: #aaa;
+}
+
+.ff-checkbox{
+	display: inline-block;	
+	background-image: url("/static/css/images/jstree.png");
+	background-repeat: no-repeat;
+	background-color: transparent;
+	height: 18px!important;
+	width: 18px!important;
+}
+
+.ff-unchecked{
+	background-position: -2px -19px;
+}
+
+.ff-checked{
+	background-position: -38px -19px;
+}
+
+.ff-icon{
+	margin: 0 8px 0 8px;	
+	height: 16px;
+	width: 16px;
+	display: inline-block;
+	background-repeat: no-repeat;
+	background-color: transparent;
+	cursor: pointer;	
+}
+
+.ff-table-row a:hover{
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+tr.ff-selected{
+	background: whitesmoke;
+}
+
+[draggable] {
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	user-select: none;
+	/* Required to make elements draggable in old WebKit */
+	-khtml-user-drag: element;
+	-webkit-user-drag: element;
+}
