@@ -8,8 +8,11 @@
 	margin-top: 40px;
 }
 
+.ff-table tr{
+	white-space: nowrap;
+}
+
 .ff-table > thead{
-	background: white;
 	width: 100%;
 }
 
@@ -38,11 +41,12 @@
 
 .ff-checkbox{
 	display: inline-block;	
-	background-image: url("https://plot.ly/static/css/images/jstree.png");
+	background-image: url("/static/img/filefabric.png");
 	background-repeat: no-repeat;
 	background-color: transparent;
 	height: 18px!important;
 	width: 18px!important;
+	cursor: pointer;
 }
 
 .ff-unchecked{
@@ -51,6 +55,10 @@
 
 .ff-checked{
 	background-position: -38px -19px;
+}
+
+.ff-partial{
+	background-position: 0px 0px;
 }
 
 .ff-icon{
