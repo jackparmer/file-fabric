@@ -776,3 +776,4 @@ function FileFabric( initObj ){
 
 	_createFileTable();
 }
+
