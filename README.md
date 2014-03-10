@@ -1,21 +1,21 @@
-file-fabric
-===========
+FileFabric
+==========
 
 Lightweight, Google Docs-like file list viewer. 
 
-## demo
+## Demo
 
 Check out https://plot.ly/plot. You'll have to create an account and save some Plotly files.
 
-![FileFabric preview](http://imgur.com/jfhR1mD)
+![FileFabric preview](http://i.imgur.com/jfhR1mD.png)
 
-## getting started
+## Getting Started
 
 Include filefabric.js and filefabric.css. Then create a new file tree like so:
 
 ### ```fileViewer = new FileFabric( configObject )```
 
-*configObject* defines the columns and rows of the file. Here's an example:
+__configObject__ defines the columns and rows of the file. Here's an example:
 
 ```javascript
 var configObject = {
@@ -37,19 +37,22 @@ Possible keys for the configuration object are:
 
 * __fileJson__ JSON array of row objects. More on this later.
 * __containerDiv__ DIV container for file list
-* __columns__ Array of columns objects
-    * __Possible keys for column objects__
+* __columns__ Array of columns objects. Keys for column objects:
     * __name__ Name of file list column
     * __key__ Key in fileJSON that matches column to row data
-    * __template__ (optional) Template function for column cells. Template functions are passed a row object from the fileJSON array and return the HTML for that cell.
+    * __template__ (optional) Template function for column cells \*\*
     * __onclick__ (optional) Function - click event listener for cell text
 * __contextMenu__ (optional) Function - contextMenu (right-click) event listener
 * __changeFilder__ (optional) Function - called after folder changes
 * __cellClasses__ (optional) 
 
-## row data
+\*\* Template functions are passed a row object from the fileJSON array and return the HTML for that cell.
 
-Row data (the list fo files) is encoded in the fileJson array. This will likely be returned by an AJAX call to a server. Each row gets on object. For example,
+## Row Data
+
+Row data (the list of files) is encoded in the fileJson array.  <br />
+This will likely be returned by an AJAX call to a server.  <br />
+Each row gets on object. For example,
 
 ```javascript
 var fileJson = JSON.stringify([
@@ -75,9 +78,9 @@ var fileJson = JSON.stringify([
 This would create a file viewer with 2 files - 1 for each row. __attr__ is an object HTML attributes to add to the row. The other top level keys correspond to the __key__ fields in the columns object (see above).
 All file items must have a unique __id__ key in the __attr__ object, everything else is optional.
 
-## public members
+## Public Methods
 
-Once you have a FileFabric object (*"fileViewer"* from the example above), there are a number of functions and for interacting with your file viewer:
+FileFabric objects (*"fileViewer"* from the example above) have a number of public methods:
 
 ### ```fileViewer.parentRow( el )``` 
 Returns the the top-level HTML row element given an HTML element inside the row.
@@ -90,12 +93,13 @@ Swipes the file viewer to show contents of a new folder. Accpeted keys for folde
 * __folderName__    Name of folder
 
 ### ```fileViewer.retrieveFolder( fid )```
-Given a folder id, return the file objects for that folder if the folder has been loaded via showFolder().
-If a folder with that id does not exist, return false.
+Given a folder id, return the file objects for that folder if the folder has been loaded via showFolder().  <br />
+If a folder with that id does not exist, return false. <br />
 This allows for "lazy-loading" - not loading folder contents from the server until a user opens that folder.
 
 ### ```fileViewer.renameCell( fid, key text )```
 Reset the text contents of a cell
+
 * __fid__   file id of item (row)
 * __key__   column id of item
 * __txt__   new name for cell
@@ -128,21 +132,21 @@ Only updates the node attrributes, not the row cells. use redrawOne() to redraw 
 * __position__    where to append node in tree if creating it, either "first" or "last"
 
 ### ```fileViewer.getItemsByAttribute(  key, val )```
-Return all loaded rows with attribute 'key' having value 'val'
-for example, fileViewer.getItemsByAttribute( 'class', 'hello' )
+Return all loaded rows with attribute 'key' having value 'val'.  <br />
+For example, fileViewer.getItemsByAttribute( 'class', 'hello' )  <br />
 returns all rows having class 'hello'
 
 ### ```fileViewer.getCurrentFolder()```
-Returns the id and name of the current folder in view in an object with keys __id__ and __name__
+Returns the id and name of the current folder in view in an object with keys __id__ and __name__  <br />
 The root folder has a reserved id, which is "ff-root"
 
 ### ```fileViewer.toggleCheckboxes()```
-Click event listener for a "select all" checkbox
-Behavior:
-No rows are selected --> select all rows
-All rows are selected --> deselect all rows
-Some rows are selected --> deselect all rows
+Click event listener for a "select all" checkbox  <br /> 
+Behavior:  <br /> 
+No rows are selected --> select all rows  <br /> 
+All rows are selected --> deselect all rows  <br /> 
+Some rows are selected --> deselect all rows  <br /> 
 
 ### ```fileViewer.selectAllItems( state )```
-Select or deselect all rows
+Select or deselect all rows  <br /> 
 Set __state__ to true to select all rows; false to deselect rows, defaults to true
