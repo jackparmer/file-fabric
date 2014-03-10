@@ -37,14 +37,14 @@ Possible keys for the configuration object are:
 
 * __fileJson__ JSON array of row objects. More on this later.
 * __containerDiv__ DIV container for file list
-* __columns__ Array of columns objects. Keys for column objects:
+* __columns__ Array of column objects. Possible column object keys:
     * __name__ Name of file list column
-    * __key__ Key in fileJSON that matches column to row data
+    * __key__ Key in fileJson that matches column to row data
     * __template__ (optional) Template function for column cells \*\*
     * __onclick__ (optional) Function - click event listener for cell text
+    * __cellClasses__ (optional) String - class names string to add to all cells in column
 * __contextMenu__ (optional) Function - contextMenu (right-click) event listener
 * __changeFilder__ (optional) Function - called after folder changes
-* __cellClasses__ (optional) 
 
 \*\* Template functions are passed a row object from the fileJSON array and return the HTML for that cell.
 
