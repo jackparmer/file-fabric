@@ -150,3 +150,7 @@ Some rows are selected --> deselect all rows  <br />
 ### ```fileViewer.selectAllItems( state )```
 Select or deselect all rows  <br /> 
 Set __state__ to true to select all rows; false to deselect rows, defaults to true
+
+## License
+
+This software is released under the MIT license
