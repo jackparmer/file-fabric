@@ -34,16 +34,38 @@ function FileFabric( initObj ){
 
 		var _tableHeader = function( _cols ){
 			// return HTML for table header <th> elements
-			var headerHtml = '<thead><tr><th></th>';	// HTML for table header
-			var col;									// a single column object
+			var tblHeader = document.createElement('THEAD');	// table header element to be returned
+			var headerRow = document.createElement('TR');		// table header row
+			var col;											// a single column object
+			var downArrow;										// HTML for downwards menu caret
+			var headerCell;										// a single header <TH> element
+			var headerDiv;										// DIV that wraps header contents
+
+			headerRow.appendChild( document.createElement('TH') );
 
 			for( var i=0; i < _cols.length; i++ ){
 				// add table header elements one-by-one
 				col = _cols[i];
-				headerHtml = headerHtml + (['<th>',col.name,'</th>']).join('');
+				headerCell = document.createElement('TH');
+				headerDiv = document.createElement('DIV');
+				headerDiv.className = 'ff-header-content';
+				if( col.onHeaderClick !== undefined ){
+					// This header can be clicked!
+					downArrow = '<div class="ff-dd-arrow"></div>';
+					headerCell.className = 'ff-header-menu';
+					headerCell.setAttribute('data-key',col.key);
+					headerDiv.innerHTML = (['<div>',col.name,'</div>','<div class="ff-dd-arrow"></div>']).join('');
+					headerDiv.addEventListener('click', col.onHeaderClick);
+				}
+				else{
+					headerDiv.innerHTML = (['<div>',col.name,'</div>']).join('');
+				}
+				headerCell.appendChild( headerDiv );
+				headerRow.appendChild( headerCell );
 			}
 
-			return headerHtml+'</th></thead>';
+			tblHeader.appendChild( headerRow );			
+			return tblHeader;
 		};
 
 		var _navBar = function(){
@@ -58,6 +80,10 @@ function FileFabric( initObj ){
 
 			var node; // single row object
 
+			if( _data.length == 0 && that._emptyFolder !== undefined ){
+				that.makeAnnouncement( that._emptyFolder );
+			}
+
 			for( var i=0; i < _data.length; i++ ){
 				node = _data[i];
 				_appendRow( node, tableEl );
@@ -67,9 +93,8 @@ function FileFabric( initObj ){
 		tableEl = document.createElement('TABLE');
 		tableEl.className = 'ff-table';
 
-		tableHtml = _tableHeader(_cols) + '<tbody></tbody>';
-
-		tableEl.innerHTML = tableHtml;
+		tableEl.appendChild( _tableHeader(_cols) );
+		tableEl.appendChild( document.createElement('TBODY') );
 
 		firstContainerChild = initObj.containerDiv.firstChild;
 		navBar = _navBar();
@@ -145,12 +170,14 @@ function FileFabric( initObj ){
 			newCell.innerHTML = _defaultCellTemplate( col, node );	
 		}
 
-		if( 'onclick' in col ){
+		if( 'onCellClick' in col ){
 			cellLink = newCell.getElementsByTagName('a')[0];
-			cellLink.addEventListener( 'click', col['onclick'], false );
-			cellLink.setAttribute('data-dismiss','modal');
-			if( that._contextMenu !== undefined ){ 
-				cellLink.addEventListener('contextmenu', that._contextMenu, false);
+			if( cellLink !== undefined ){
+				cellLink.addEventListener( 'click', col['onCellClick'], false );
+				cellLink.setAttribute('data-dismiss','modal');
+				if( that._contextMenu !== undefined ){ 
+					cellLink.addEventListener('contextmenu', that._contextMenu, false);
+				}
 			}
 		}
 
@@ -304,12 +331,18 @@ function FileFabric( initObj ){
 	var _appendRow = function( node, tableEl, position ){
 		// insert a row node <tr> into table element tableEl
 		// node = single file object
-		// tableEl = HTML table element
+		// tableEl = HTML tbody element
 		// position = optional, 'first' to prepend row, 'last' to append row
 
 		var newRow;							// new row <tr> element
 		var checkboxCell;					// cell <tr> element containing checkbox
 		var _cols = that._cols;				// column specification object	
+
+		that.unannounce();
+
+		if( position == 'first' ){
+			console.log( 'prepending row(s): ', node, tableEl );
+		}
 
 		if( position != 'first' ) position = 'last';
 
@@ -317,7 +350,13 @@ function FileFabric( initObj ){
 			newRow = tableEl.insertRow(-1);
 		}
 		else{
-			newRow = tableEl.insertRow(1);
+			try{
+				newRow = tableEl.insertRow(0);
+			}
+			catch(e){
+				console.log( 'couldnt insert row at pos 0, trying pos 1' );
+				newRow = tableEl.insertRow(1);
+			}
 		}
 
 		newRow.className = 'ff-table-row';
@@ -438,7 +477,13 @@ function FileFabric( initObj ){
 		}
 
 		// clear table contents
+		console.log( 'showFolder-->clearing tableEl', tableEl );
 		tableEl.innerHTML = '';
+
+		console.log()
+		if( newData.length == 0 && that._emptyFolder !== undefined ){
+			that.makeAnnouncement( that._emptyFolder );
+		}
 
 		// add new rows for folder
 		for( var i = 0; i < newData.length; i++ ){
@@ -549,7 +594,7 @@ function FileFabric( initObj ){
 	this.removeCheckedItems = function(){
 		// remove selected rows from FileFabric object and the DOM (remove table row elements)
 		var rows = that.getCheckedItems();
-		var currentFolderId = that._breadcrumbs[ that._breadcrumbs.length-1 ].id;
+		var currentFolderId = that.getCurrentFolder().id;
 		var row;
 		var fid;
 
@@ -559,7 +604,7 @@ function FileFabric( initObj ){
 			for( var j=0; j < that._data[currentFolderId].length; j++ ){
 				if( that._data[currentFolderId][j].attr.id == fid ){
 					that._data[currentFolderId].splice(j,1)			// remove row from _data object
-					j--;											// re-index due to splice
+					j=j-1;											// re-index due to splice
 				}
 			}
 			row.parentNode.removeChild(row);						// remove row from DOM
@@ -571,7 +616,7 @@ function FileFabric( initObj ){
 		// fileJson --> unparsed JSON
 		// position --> optional, 'first' to preprend items at beginning of folder
 
-		var tableEl = that._containerDiv.getElementsByTagName('TABLE')[0];
+		var tableEl = that._containerDiv.getElementsByTagName('tbody')[0];
 		var fileItem;											// a single file item to add to folder
 		var folder = that._data[ that.getCurrentFolder().id ];	// the folder getting items added to it
 
@@ -637,14 +682,15 @@ function FileFabric( initObj ){
 	this.redrawOne = function( newNode ){
 		// redraw a table row given a new node and update the _data object
 
-		var tbl = document.createElement('TABLE');
+		var tbl = document.createElement('TABLE');		// Dummy table to create row within
 		var nodeId = newNode.attr.id;
 		var oldRow = document.getElementById( nodeId );
 		var newRow;
 		var oldNode;
 
 		if( oldRow === null ){
-			console.log( 'redrawOne() tried to redraw a file item with id '+ nodeId +' that does not exist' );
+			console.log( 'redrawOne() tried to redraw a file item with id '+ nodeId +' that does not exist, calling addItems()' );
+			that.addItems( JSON.stringify([newNode]), 'first' );
 			return false;
 		}
 
@@ -665,13 +711,14 @@ function FileFabric( initObj ){
 		// only updates the node attrributes, not the row cells. use redrawOne() to redraw cells
 		// node --> node object
 		// position --> where to append node in tree if creating it, either "first" or "last"
+		console.log('FF --> createOrUpdateOne');
 
 		if( position === undefined ){ position = 'first'; } 
 
 		var nodeId = node.attr.id;
 		var nodeAttributes = node.attr;
 		var nodeExists = false;
-		var tableEl = that._containerDiv.querySelectorAll('table.ff-table')[0];
+		var tableEl = that._containerDiv.querySelectorAll('table.ff-table')[0].getElementsByTagName('tbody')[0];
 		var rootFolder = that._data[ 'ff-root' ];
 		var matchingNode;
 
@@ -679,7 +726,7 @@ function FileFabric( initObj ){
 		matchingNode = that.getItemsByAttribute( 'id', nodeId );
 		nodeExists = Boolean( matchingNode.length );
 
-		console.log( 'createOrUpdateOne --> nodeExists', nodeExists );
+		console.log( 'createOrUpdateOne --> ', node, position, matchingNode );
 
 		if( nodeExists ){
 			that.setItemAttributes( nodeId, nodeAttributes );
@@ -760,6 +807,123 @@ function FileFabric( initObj ){
 		_updateCheckboxStatus();
 	}
 
+	this.makeAnnouncement = function( template ){
+		// Add a row with a cell that spans all of the columns
+		// "template" is a template function that returns html for cell contents
+
+		var colspan = that._cols.length + 1;
+		var tblBody = that._containerDiv.getElementsByTagName('tbody')[0];
+		var messageRow = tblBody.insertRow(0);
+		var messageCell = document.createElement('TD');
+
+		that.unannounce(); // remove any previous announcement
+
+		messageRow.className = 'ff-announcement';
+		messageCell.setAttribute( 'colspan', colspan );
+		messageCell.innerHTML = template( that );
+
+		messageRow.appendChild( messageCell );
+	}
+
+	this.unannounce = function(){
+		// remove announcement row from table DOM
+
+		var	announcements = that._containerDiv.getElementsByClassName('ff-announcement');
+		var singleAnnouncement;
+		var parent;
+
+		for( var i=0; i<announcements.length; i++ ){
+			singleAnnouncement = announcements[i];
+			parent = singleAnnouncement.parentNode;
+			parent.removeChild( singleAnnouncement );
+		}
+	} 
+
+	this.getColumnKeys = function(){
+		// return a flast array of all column identifier strings, one for each column
+
+		var keys = [];	// list of identifiers for all columns
+
+		for( var i=0; i<that._cols.length; i++ ){
+			keys.push( that._cols[i].key );
+		}	
+
+		return keys;
+	}
+
+	this.addFilter = function( colKey, filterKeyword, behavior ){
+		// add a column filter to FF's filter object
+		// columnKey --> column identifier string
+		// filterKeyword --> a unique string identifying filter 
+		// ... (unique meaning no other columns have the same filter string)
+		// behavior --> either "exclusive" or "inclusive", defaults to "inclusive"
+		// ... "exclusive" filters are stored separately from inclusive ones and denote
+		// ... filters that are mutually-exclusive (like radio-button selections)
+
+		var keys = that.getColumnKeys();						// column IDs for all columns
+		var headerElem = that._containerDiv
+				.querySelectorAll('TH[data-key='+colKey+']')[0];	// column header element (<TH>)
+
+		if( behavior === undefined ){ behavior = 'inclusive'; }
+
+		if( keys.indexOf( colKey ) < 0 ){  
+			throw { name: 'File Fabric', message: 'Column ID does not exist.' };
+		}
+
+		if( that._columnFilters[ colKey ] === undefined ){ 
+			that._columnFilters[ colKey ] = { 'exclusive':[], 'inclusive':[] }; 
+		}
+
+		if( behavior == 'exclusive' ){ that._columnFilters[ colKey ][behavior] = []; }
+
+		that._columnFilters[ colKey ][behavior].push( filterKeyword );
+
+		// add active class to header element
+		if( headerElem.className.indexOf('ff-active-header') < 0 ){
+			headerElem.className += ' ff-active-header';
+		}
+	}
+
+	this.removeFilter = function( colKey, filterKeyword ){
+		// remove a filter from a column by its identifying string
+
+		var filterTypes = ['inclusive','exclusive']
+		var ft;				// "filter type", either exclusive or inclusive
+		var filterIndex;	// index of matching filter string
+		var headerElem;		// <TH> elem of column
+		var regex;			// regex for replacing header class names
+
+		for( i in filterTypes ){
+			ft = filterTypes[i];
+			filterIndex = ( that._columnFilters[ colKey ][ ft ] ).indexOf( filterKeyword );
+			if( filterIndex > -1 ){
+				( that._columnFilters[ colKey ][ ft ] ).splice(filterIndex, 1);
+			}	
+		}
+
+		if( that.getAllFilters().length == 0 ){
+			headerElem = that._containerDiv
+				.querySelectorAll('TH[data-key='+colKey+']')[0];	// column header element (<TH>)
+			regex = new RegExp( 'ff-active-header', 'g' );			
+			headerElem.className = headerElem.className.replace( regex, '' );
+		}	
+	}
+
+	this.getAllFilters = function(){
+		// returns a flat list of all column filters in the columnFilters object
+
+		var filterStrings = [];									// filter strings for all columns
+		var columnKeys = Object.keys( that._columnFilters );	// identifiers for all columns that have filters
+		var columnFilters;										// filter string object for a single column
+
+		for( var i=0; i<columnKeys.length; i++ ){
+			columnFilters = that._columnFilters[ columnKeys[i] ];
+			filterStrings = filterStrings.concat( columnFilters['inclusive'], columnFilters['exclusive'] );
+		}
+
+		return filterStrings;
+	}
+
 	/* ---------------------------- */
 	/* --- OBJECT INSTANTIATION --- */
 	/* ---------------------------- */
@@ -773,6 +937,8 @@ function FileFabric( initObj ){
 	this._breadcrumbs = [ {id: 'ff-root', name:'Home'} ];
 	this._contextMenu = initObj.contextMenu;
 	this._changeFolder = initObj.changeFolder;
+	this._emptyFolder = initObj.emptyFolder;
+	this._columnFilters = {};
 
 	_createFileTable();
 }
